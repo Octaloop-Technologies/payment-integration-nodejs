@@ -3,6 +3,7 @@ const Payment = require("../models/payment");
 // Function to Save a Payment
 const savePayment = async (paymentData) => {
   try {
+    console.log("hjreeeeeeeeeee");
     const newPayment = new Payment(paymentData);
     await newPayment.save();
     return {

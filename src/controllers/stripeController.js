@@ -7,36 +7,30 @@ const {
   updatePayment,
 } = require("../controllers/paymentController");
 
-const createCheckoutSession = async (req, res, next) => {
+const createPaymentIntent = async (req, res, next) => {
   try {
-    const { amount, successUrl, cancelUrl } = req.body;
+    const { amount, currency = "usd" } = req.body;
 
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card", "cashapp", "klarna", "amazon_pay"],
-      line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            product_data: { name: "Your Product Name" },
-            unit_amount: amount * 100,
-          },
-          quantity: 1,
-        },
-      ],
-      mode: "payment",
-      success_url: successUrl || process.env.SUCESS_URL_STRIPE,
-      cancel_url: cancelUrl || process.env.FAIL_URL_STRIPE,
+    // Create a Payment Intent
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: amount * 100,
+      currency,
+      payment_method_types: ["card", "cashapp", "amazon_pay"],
     });
 
+    // Save initial payment details
     await savePayment({
-      paymentId: session.id,
+      paymentId: paymentIntent.id,
       status: "Pending",
       amount,
-      currency: "usd",
+      currency,
       type: "Stripe",
     });
 
-    res.json({ success: true, sessionId: session.id, url: session.url });
+    res.json({
+      success: true,
+      clientSecret: paymentIntent.client_secret,
+    });
   } catch (error) {
     next(error);
   }
@@ -60,12 +54,13 @@ const stripeWebhook = async (req, res, next) => {
       message: err.message,
     });
   }
+ 
 
   switch (event.type) {
-    case "checkout.session.completed":
-      const session = event.data.object;
+    case "payment_intent.succeeded":
+      const paymentIntent = event.data.object;
       try {
-        await updatePayment(session.id, { status: "Completed" });
+        await updatePayment(paymentIntent.id, { status: "Completed" });
       } catch (error) {
         return next(error);
       }
@@ -79,6 +74,6 @@ const stripeWebhook = async (req, res, next) => {
 };
 
 module.exports = {
-  createCheckoutSession,
+  createPaymentIntent,
   stripeWebhook,
 };

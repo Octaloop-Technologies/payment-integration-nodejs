@@ -1,11 +1,8 @@
 const express = require("express");
 const {
-  createPaymentIntent,
-  getSecret,
-  createCheckoutSession,
+  createPaymentIntent
 } = require("../controllers/stripeController");
 
 const router = express.Router();
-router.post("/checkout-session", createCheckoutSession);
-
+router.post("/payment-intent", createPaymentIntent);
 module.exports = router;

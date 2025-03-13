@@ -9,4 +9,11 @@ router.post(
   stripeWebhook
 );
 
+router.get(
+  "/stripe/webhook",
+  (req, res) => {
+    res.send("Here return something");
+  }
+);
+
 module.exports = router;
