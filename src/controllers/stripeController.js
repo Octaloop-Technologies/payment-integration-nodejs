@@ -9,7 +9,14 @@ const {
 
 const createPaymentIntent = async (req, res, next) => {
   try {
-    const { amount, currency = "usd" } = req.body;
+    const {
+      amount,
+      currency = "usd",
+      name,
+      email,
+      type = "Stripe",
+      featureType,
+    } = req.body;
 
     // Create a Payment Intent
     const paymentIntent = await stripe.paymentIntents.create({
@@ -19,13 +26,22 @@ const createPaymentIntent = async (req, res, next) => {
     });
 
     // Save initial payment details
-    await savePayment({
+    const paymentData = {
       paymentId: paymentIntent.id,
       status: "Pending",
       amount,
       currency,
-      type: "Stripe",
-    });
+      Name: name,
+      Email: email,
+      type,
+      featureType,
+    };
+
+    const { success, message, payment } = await savePayment(paymentData);
+
+    if (!success) {
+      return next({ message, error: message });
+    }
 
     res.json({
       success: true,
@@ -54,7 +70,6 @@ const stripeWebhook = async (req, res, next) => {
       message: err.message,
     });
   }
- 
 
   switch (event.type) {
     case "payment_intent.succeeded":

@@ -2,6 +2,14 @@ const mongoose = require("mongoose");
 
 const paymentSchema = new mongoose.Schema(
   {
+    Name: {
+      type: String,
+      required: true,
+    },
+    Email: {
+      type: String,
+      required: true,
+    },
     paymentId: {
       type: String,
       required: true,
@@ -39,6 +47,11 @@ const paymentSchema = new mongoose.Schema(
     },
     currency: {
       type: String,
+    },
+    featureType: {
+      type: String,
+      required: true,
+      enum: ["RidePayments", "WatchToEarn", "SendMoneyFees"],
     },
   },
   { timestamps: true }

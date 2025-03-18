@@ -9,6 +9,7 @@ const {
 const ordersController = new paypal.OrdersController(client);
 
 const createOrder = async (req, res, next) => {
+  const { name, email, type = "PayPal",featureType } = req.body;
   const collect = {
     body: {
       intent: "CAPTURE",
@@ -34,7 +35,10 @@ const createOrder = async (req, res, next) => {
       status: JSON.parse(body).status,
       amount: collect.body.purchaseUnits[0].amount.value,
       currency: collect.body.purchaseUnits[0].amount.currencyCode,
-      type: "PayPal",
+      type: type,
+      Name: name,
+      Email: email,
+      featureType
     };
 
     await savePayment(paymentData);

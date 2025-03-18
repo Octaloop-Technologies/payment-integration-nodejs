@@ -3,7 +3,7 @@ const Payment = require("../models/payment");
 // Function to Save a Payment
 const savePayment = async (paymentData) => {
   try {
-    console.log("hjreeeeeeeeeee");
+    console.log("paymentData", paymentData);
     const newPayment = new Payment(paymentData);
     await newPayment.save();
     return {
@@ -12,6 +12,7 @@ const savePayment = async (paymentData) => {
       payment: newPayment,
     };
   } catch (error) {
+    console.log(error, "error");
     return {
       success: false,
       message: "Failed to save payment",
