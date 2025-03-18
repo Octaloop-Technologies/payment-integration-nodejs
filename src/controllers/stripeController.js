@@ -53,7 +53,7 @@ const createPaymentIntent = async (req, res, next) => {
 };
 
 const stripeWebhook = async (req, res, next) => {
-  console.log("📩 Inside Stripe Webhook");
+  console.log(" Stripe Webhook");
 
   const sig = req.headers["stripe-signature"];
   let event;
@@ -80,9 +80,15 @@ const stripeWebhook = async (req, res, next) => {
         return next(error);
       }
       break;
-
+    case "payment_intent.payment_failed":
+      const failedPaymentIntent = event.data.object;
+      try {
+        await updatePayment(failedPaymentIntent.id, { status: "Failed" });
+      } catch (error) {
+        return next(error);
+      }
     default:
-      console.log(`ℹ️  Received unhandled event type: ${event.type}`);
+      console.log(` Received unhandled event type: ${event.type}`);
   }
 
   res.status(200).send("Webhook received.");
