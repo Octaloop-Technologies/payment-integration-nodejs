@@ -6,6 +6,7 @@ require("dotenv").config();
 const paypalRoutes = require("./routes/paypalRoute");
 const stripeRoutes = require("./routes/stripeRoutes");
 const webHookRoute = require("./routes/webhookRoute");
+const adminRoutes = require("./routes/adminRoutes");
 
 const {
   paypalErrorHandler,
@@ -35,5 +36,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Other Routes
 app.use("/api/paypal", paypalRoutes);
 app.use("/api/stripe", stripeRoutes);
+app.use("/api/admin", adminRoutes);
 
 module.exports = app;
