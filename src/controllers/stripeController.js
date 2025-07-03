@@ -1,4 +1,5 @@
 const Stripe = require("stripe");
+const Withdrawal = require("../models/withdrawal");
 require("dotenv").config();
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -8,6 +9,7 @@ const {
 } = require("../controllers/paymentController");
 
 const createPaymentIntent = async (req, res, next) => {
+  console.log("Route Called")
   try {
     const {
       amount,
@@ -94,7 +96,46 @@ const stripeWebhook = async (req, res, next) => {
   res.status(200).send("Webhook received.");
 };
 
+const withdrawToStripeAccount = async (req, res, next) => {
+  try {
+    const { email, amount, stripeAccountId } = req.body;
+
+    if (!amount || !stripeAccountId) {
+      return res.status(400).json({ message: "Missing amount or stripeAccountId." });
+    }
+
+    // Stripe requires amount in cents
+    const transfer = await stripe.transfers.create({
+      amount: Math.round(amount * 100), // cents
+      currency: "usd",
+      destination: stripeAccountId,
+      transfer_group: `withdrawal_${Date.now()}`,
+    });
+
+    // Save withdrawal
+    await Withdrawal.create({
+      Email: email || "unknown",
+      amount,
+      stripeTransferId: transfer.id,
+      stripeAccountId,
+      status: "Pending",
+    });
+
+    res.json({
+      success: true,
+      message: "Transfer sent successfully",
+      transferId: transfer.id,
+    });
+  } catch (err) {
+    console.error("Stripe withdrawal error:", err);
+    res.status(500).json({ message: "Withdrawal failed", error: err.message });
+  }
+};
+
+
+
 module.exports = {
   createPaymentIntent,
   stripeWebhook,
+  withdrawToStripeAccount,
 };
